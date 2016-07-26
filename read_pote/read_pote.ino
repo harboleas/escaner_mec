@@ -38,9 +38,9 @@ void loop()
    
     // Tx de los valores a la PC
     
-    Serial.write(pote1.data, 2)
-    Serial.write(pote2.data, 2)
-    Serial.write(pote3.data, 2)
+    Serial.write(pote1.data, 2);
+    Serial.write(pote2.data, 2);
+    Serial.write(pote3.data, 2);
 
 }
   
