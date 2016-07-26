@@ -42,6 +42,8 @@ void loop()
     Serial.write(pote2.data, 2);
     Serial.write(pote3.data, 2);
 
+    delay(10);    
+
 }
   
 /* vim: set ts=8 sw=4 tw=0 et :*/
