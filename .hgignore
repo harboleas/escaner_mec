@@ -1,0 +1,6 @@
+syntax: glob
+
+*.pyc
+*.fcstd1
+*.mp4
+

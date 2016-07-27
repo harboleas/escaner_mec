@@ -1,10 +1,11 @@
 #############################################
-# Prueba potes
-# ============
+# Mov escaner
+# ===========
 #
 # Description :
-#  Prueba para recibir del arduino, los valores 
-#  de los potes y mover el modelo 3d del escaner
+#  Recibe del Arduino los valores de los potes 
+#  y modifica, segun estos datos, la posicion 
+#  del modelo 3d del escaner en el FreeCAD
 #  
 # Author :
 #  Hugo Arboleas <harboleas@citedef.gob.ar>
@@ -18,11 +19,11 @@ import serial
 import time
 import math
 
-RADIANES_POR_CUENTA = math.radians(315.0) / 1024
+RADIANES_POR_CUENTA = math.radians(270.0) / 1024
 
 doc = FreeCAD.ActiveDocument
 
-# Las 3 rotaciones
+# Creo 3 objetos Placement para las rotaciones
 rot1 = FreeCAD.Placement()
 rot2 = FreeCAD.Placement()
 rot3 = FreeCAD.Placement()
@@ -66,7 +67,7 @@ def read_pote() :
     datos = arduino.read(2)
     return struct.unpack("h", datos)[0]  # convierte 2 bytes a int
 
-def update() :
+def update() :    # Actualiza el modelo segun los datos leidos
 
     arduino.write("a") # pide los datos al arduino
 
