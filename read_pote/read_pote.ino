@@ -42,7 +42,7 @@ void loop()
     Serial.write(pote2.data, 2);
     Serial.write(pote3.data, 2);
 
-    delay(50);    
+    delay(20);    
 
 }
   
