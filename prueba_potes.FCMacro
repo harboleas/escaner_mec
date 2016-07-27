@@ -4,7 +4,7 @@
 #
 # Description :
 #  Prueba para recibir del arduino, los valores 
-#  de los potes
+#  de los potes y mover el escaner
 #  
 # Author :
 #  Hugo Arboleas <harboleas@citedef.gob.ar>
@@ -18,8 +18,36 @@ import serial
 import time
 import math
 
+RADIANES_POR_CUENTA = math.radians(315.0) / 1024
+
 doc = FreeCAD.ActiveDocument
-box = doc.Box001
+
+# Las 3 rotaciones
+rot1 = FreeCAD.Placement()
+rot2 = FreeCAD.Placement()
+rot3 = FreeCAD.Placement()
+
+
+# Partes moviles del escaner
+acople = doc.Body001
+pote2 = doc.Part__Feature002
+tuerca2 = doc.Part__Feature003
+brazo1 = doc.Body002
+pote3 = doc.Part__Feature004
+tuerca3 = doc.Part__Feature005
+brazo2 = doc.Body003
+
+partes_rot1 = [acople, pote2, tuerca2, brazo1, pote3, tuerca3, brazo2]
+orig = [parte.Placement for parte in partes_rot1]
+
+partes_rot1_orig = zip(partes_rot1, orig)
+partes_rot2 = partes_rot1[3:]
+partes_rot3 = partes_rot2[3:]
+
+
+rot1.Rotation.Axis = FreeCAD.Vector(0,0,1)
+
+z = FreeCAD.Vector(0,0,1)
 
 # Reset del Arduino para una conexion limpia
 arduino = serial.Serial("/dev/ttyUSB0")
@@ -30,6 +58,7 @@ arduino.setDTR(True)
 arduino.close()
 
 arduino = serial.Serial("/dev/ttyUSB0", 115200)
+time.sleep(5)
 
 def read_pote() :
 
@@ -38,15 +67,44 @@ def read_pote() :
 
 def update() :
 
-    p1 = read_pote()
-    p2 = read_pote()
-    p3 = read_pote()
-    print "%d %d %d" % (p1, p2, p3)
+    arduino.write("a") # pide los datos al arduino
 
-    box.Placement.Rotation.Angle = p1 * (math.radians(270.0) / 1024.0)
+    # Lee el valor de los potes y lo convierte a radianes
+    p1 = read_pote() * RADIANES_POR_CUENTA 
+    p3 = read_pote() * RADIANES_POR_CUENTA - math.radians(35)
+    p2 = read_pote() * RADIANES_POR_CUENTA - math.radians(35)
 
+    print "%f %f %f" % (math.degrees(p1), math.degrees(p2), math.degrees(p3))
+
+    # Rotacion pote 1
+    rot1.Rotation.Angle = p1
+
+    for parte, orig in partes_rot1_orig :
+        parte.Placement = rot1.multiply(orig)    
+
+    # Rotacion pote 2
+    rot2.Rotation.Axis = pote2.Placement.Rotation.multVec(z)
+    rot2.Rotation.Angle = p2
+    rot2.Base = pote2.Placement.Base
+    despl = rot2.Base.negative()
+
+    for parte in partes_rot2 :
+        parte.Placement.move(despl)
+        parte.Placement = rot2.multiply(parte.Placement)    
+    
+    # Rotacion pote 3
+    rot3.Rotation.Axis = pote3.Placement.Rotation.multVec(z)
+    rot3.Rotation.Angle = p3
+    rot3.Base = pote3.Placement.Base
+    despl = rot3.Base.negative()
+
+    for parte in partes_rot3 :
+        parte.Placement.move(despl)
+        parte.Placement = rot3.multiply(parte.Placement)    
+
+# Actualiza los datos cada 25 ms
 timer = QtCore.QTimer()
 QtCore.QObject.connect(timer, QtCore.SIGNAL("timeout()"), update)
-timer.start(10)
+timer.start(25)
 
 #  vim: set ts=8 sw=4 tw=0 et :

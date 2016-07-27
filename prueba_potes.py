@@ -26,6 +26,8 @@ arduino.close()
 
 arduino = serial.Serial("/dev/ttyUSB0", 115200)
 
+time.sleep(10)
+
 def read_pote() :
 
     datos = arduino.read(2)
@@ -33,6 +35,7 @@ def read_pote() :
 
 while True :
 
+    arduino.write("a")
     p1 = read_pote()
     p2 = read_pote()
     p3 = read_pote()

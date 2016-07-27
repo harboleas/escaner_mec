@@ -15,6 +15,8 @@
 #define P2 6
 #define P3 5
 
+int aux;
+
 union byte_int
 {
     byte data[2];
@@ -37,12 +39,15 @@ void loop()
     pote3.val = analogRead(P3);
    
     // Tx de los valores a la PC
+
+    // Espera la lectura de un byte para enviar
+    while(!Serial.available());
+    
+    aux = Serial.read(); 
     
     Serial.write(pote1.data, 2);
     Serial.write(pote2.data, 2);
     Serial.write(pote3.data, 2);
-
-    delay(20);    
 
 }
   
