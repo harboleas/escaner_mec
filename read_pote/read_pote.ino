@@ -28,6 +28,8 @@ void setup()
 
     Serial.begin(115200);
 
+    Serial.write(1);  // Envia un byte para avisar que ya esta listo
+
 }
 
 void loop()

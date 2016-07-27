@@ -4,7 +4,7 @@
 #
 # Description :
 #  Prueba para recibir del arduino, los valores 
-#  de los potes y mover el escaner
+#  de los potes y mover el modelo 3d del escaner
 #  
 # Author :
 #  Hugo Arboleas <harboleas@citedef.gob.ar>
@@ -58,7 +58,8 @@ arduino.setDTR(True)
 arduino.close()
 
 arduino = serial.Serial("/dev/ttyUSB0", 115200)
-time.sleep(5)
+
+arduino.read(1)  # espera que el arduino este listo
 
 def read_pote() :
 
