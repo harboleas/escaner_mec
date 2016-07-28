@@ -50,19 +50,17 @@ void setup()
 
 void loop()
 {
-    
+
+    // Espera la lectura de un byte para convertir y enviar
+    while(!Serial.available());
+    aux = Serial.read(); 
+ 
     // Lectura de los potenciometros
     pote1.val = analogRead(P1);
     pote2.val = analogRead(P2);
     pote3.val = analogRead(P3);
-   
+  
     // Tx de los valores a la PC
-
-    // Espera la lectura de un byte para enviar
-    while(!Serial.available());
-    
-    aux = Serial.read(); 
-    
     Serial.write(pote1.data, 2);
     Serial.write(pote2.data, 2);
     Serial.write(pote3.data, 2);
