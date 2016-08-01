@@ -29,11 +29,12 @@
 #
 #############################################################################
 import FreeCAD 
-from PySide import QtCore
+from PySide import QtGui, QtCore
 import struct
 import serial
 import time
 import math
+import Draft
 
 RADIANES_POR_CUENTA = math.radians(270.0) / 1024
 
@@ -66,6 +67,9 @@ rot1.Rotation.Axis = FreeCAD.Vector(0,0,1)
 
 z = FreeCAD.Vector(0,0,1)
 
+punto_orig = FreeCAD.Vector(0, -49.4, 3.9)
+
+
 # Reset del Arduino para una conexion limpia
 arduino = serial.Serial("/dev/ttyUSB0")
 arduino.setDTR(False)
@@ -78,12 +82,15 @@ arduino = serial.Serial("/dev/ttyUSB0", 115200)
 
 arduino.read(1)  # espera que el arduino este listo
 
+puntos = []
+
 def read_pote() :
 
     datos = arduino.read(2)
     return struct.unpack("h", datos)[0]  # convierte 2 bytes a int
 
 def update() :    # Actualiza el modelo segun los datos leidos
+
 
     arduino.write("a") # pide los datos al arduino
 
@@ -100,6 +107,8 @@ def update() :    # Actualiza el modelo segun los datos leidos
     for parte, orig in partes_rot1_orig :
         parte.Placement = rot1.multiply(orig)    
 
+    punto = rot1.multVec(punto_orig)
+
     # Rotacion pote 2
     rot2.Rotation.Axis = pote2.Placement.Rotation.multVec(z)
     rot2.Rotation.Angle = p2
@@ -109,7 +118,10 @@ def update() :    # Actualiza el modelo segun los datos leidos
     for parte in partes_rot2 :
         parte.Placement.move(despl)
         parte.Placement = rot2.multiply(parte.Placement)    
-    
+
+    punto = punto.add(despl)
+    punto = rot2.multVec(punto)   
+
     # Rotacion pote 3
     rot3.Rotation.Axis = pote3.Placement.Rotation.multVec(z)
     rot3.Rotation.Angle = p3
@@ -120,9 +132,24 @@ def update() :    # Actualiza el modelo segun los datos leidos
         parte.Placement.move(despl)
         parte.Placement = rot3.multiply(parte.Placement)    
 
-# Actualiza los datos cada 25 ms
+    punto = punto.add(despl)
+    punto = rot3.multVec(punto)   
+
+    puntos.append(punto)
+
+# Actualiza los datos cada 15 ms
 timer = QtCore.QTimer()
 QtCore.QObject.connect(timer, QtCore.SIGNAL("timeout()"), update)
-timer.start(25)
+timer.start(15)
+QtGui.QMessageBox.information(None, "", "Colectando datos")
+timer.stop()
+arduino.close()
+
+a = file("puntos.xyz", "w")
+
+for p in puntos :
+    a.write("%f %f %f\n" % (p.x, p.y, p.z))
+
+a.close()
 
 #  vim: set ts=8 sw=4 tw=0 et :
