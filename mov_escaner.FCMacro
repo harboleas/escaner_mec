@@ -36,7 +36,10 @@ import time
 import math
 import Draft
 
-RADIANES_POR_CUENTA = math.radians(270.0) / 1024
+RADIANES_POR_CUENTA_1 = math.radians(69) / 214.5
+RADIANES_POR_CUENTA_2 = math.radians(59.5) / 214.5
+RADIANES_POR_CUENTA_3 = math.radians(90) / 425
+
 
 doc = FreeCAD.ActiveDocument
 
@@ -95,9 +98,9 @@ def update() :    # Actualiza el modelo segun los datos leidos
     arduino.write("a") # pide los datos al arduino
 
     # Lee el valor de los potes y lo convierte a radianes
-    p1 = read_pote() * RADIANES_POR_CUENTA 
-    p3 = read_pote() * RADIANES_POR_CUENTA - math.radians(35)
-    p2 = read_pote() * RADIANES_POR_CUENTA - math.radians(35)
+    p1 = read_pote() * RADIANES_POR_CUENTA_1 
+    p3 = read_pote() * RADIANES_POR_CUENTA_3 - math.radians(35)
+    p2 = read_pote() * RADIANES_POR_CUENTA_2 - math.radians(35)
 
     print "%f %f %f" % (math.degrees(p1), math.degrees(p2), math.degrees(p3))
 
@@ -141,7 +144,7 @@ def update() :    # Actualiza el modelo segun los datos leidos
 timer = QtCore.QTimer()
 QtCore.QObject.connect(timer, QtCore.SIGNAL("timeout()"), update)
 timer.start(15)
-QtGui.QMessageBox.information(None, "", "Colectando datos")
+QtGui.QMessageBox.information(None, "", "Tomando puntos")
 timer.stop()
 arduino.close()
 
