@@ -93,23 +93,26 @@ class Escaner_Dialog(QtGui.QDialog) :
         self.timer.start(15)
 
         # Propiedades de la ventana        
-        self.setGeometry(250, 250, 400, 150)
+        self.setGeometry(250, 250, 500, 250)
         self.setWindowTitle("Escaner 3D mecanico")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self.label_potes = QtGui.QLabel("Cuentas potes : 0, 0, 0                   " , self)
-        self.label_potes.move(20,20)
+        self.label_potes.move(20, 20)
 
         self.label_punto = QtGui.QLabel("Coord punto : 0, 0, 0                                                      " , self)
-        self.label_punto.move(20,50)
+        self.label_punto.move(20, 60)
 
         self.okButton = QtGui.QPushButton("OK", self)
         self.okButton.clicked.connect(self.onOk)
-        self.okButton.move(260, 110)
+        self.okButton.move(260, 180)
 
         self.tomar_coord_button = QtGui.QPushButton("Tomar punto", self)
         self.tomar_coord_button.clicked.connect(self.tomar_coord)
-        self.tomar_coord_button.move(20, 110)
+        self.tomar_coord_button.move(20, 180)
+
+        self.adquirir = QtGui.QCheckBox("Adquirir puntos", self)
+        self.adquirir.move(20, 100)
 
         self.punto = None
         self.show()
@@ -141,8 +144,8 @@ class Escaner_Dialog(QtGui.QDialog) :
         coord_punto = "Coord punto : %f, %f, %f" % (self.punto.x, self.punto.y, self.punto.z)
         self.label_punto.setText(coord_punto)
 
-
-#        self.puntos.append(punto)
+        if self.adquirir.isChecked() :
+            self.puntos.append(self.punto)
 
     def tomar_coord(self) :
         
@@ -154,19 +157,19 @@ class Escaner_Dialog(QtGui.QDialog) :
 
         self.timer.stop()
         self.arduino.close()
-        if self.puntos :
-            aux = self.puntos[1:]
-            aux.append(self.puntos[0])
-            pares = zip(self.puntos, aux)
-            for a,b in pares :
-                Draft.makeLine(a, b)
+#        if self.puntos :
+#            aux = self.puntos[1:]
+#            aux.append(self.puntos[0])
+#            pares = zip(self.puntos, aux)
+#            for a,b in pares :
+#                Draft.makeLine(a, b)
         
-#        a = file("puntos.xyz", "w")
+        a = file("puntos.xyz", "w")
         
-#        for p in self.puntos :
-#            a.write("%f %f %f\n" % (p.x, p.y, p.z))
+        for p in self.puntos :
+            a.write("%f %f %f\n" % (p.x, p.y, p.z))
 
-#        a.close()
+        a.close()
 
         # Reposicionar escaner al estado orig
 
