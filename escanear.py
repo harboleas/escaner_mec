@@ -76,14 +76,14 @@ class Escaner_Dialog(QtGui.QDialog):
         self.puntos = []
 
         # Reset del Arduino para una conexion limpia
-        self.arduino = serial.Serial("/dev/ttyUSB0")
+        self.arduino = serial.Serial("/dev/ttyUSB1")
         self.arduino.setDTR(False)
         time.sleep(1)
         self.arduino.flushInput()
         self.arduino.setDTR(True)
         self.arduino.close()
 
-        self.arduino = serial.Serial("/dev/ttyUSB0", 115200)
+        self.arduino = serial.Serial("/dev/ttyUSB1", 115200)
 
         self.arduino.read(1)  # espera que el arduino este listo
 
@@ -96,6 +96,10 @@ class Escaner_Dialog(QtGui.QDialog):
         self.setGeometry(250, 250, 500, 250)
         self.setWindowTitle("Escaner 3D mecanico")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+        self.label_autor = QtGui.QLabel("Hugo Arboleas <harboleas@citedef.gob.ar>" , self)
+        self.label_autor.move(20, 225)
+
 
         self.label_potes = QtGui.QLabel("Cuentas potes : 0, 0, 0                   " , self)
         self.label_potes.move(20, 20)
@@ -138,8 +142,8 @@ class Escaner_Dialog(QtGui.QDialog):
         self.label_potes.setText(potes)
 
         offset1 = math.radians(0)
-        offset2 = - math.radians(60)
-        offset3 = - math.radians(100)
+        offset2 = - math.radians(55)
+        offset3 = - math.radians(50)
         self.rotar(p1*K + offset1, p2*K + offset2, p3*K + offset3)
 
         coord_punto = "Coord punto : %f, %f, %f" % (self.punto.x, self.punto.y, self.punto.z)
