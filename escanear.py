@@ -31,17 +31,17 @@
 #
 #############################################################################
 import FreeCAD
-from PySide import QtGui, QtCore
+from PySide2 import QtGui, QtCore, QtWidgets
 import struct
 import serial
 import time
 import math
 import Draft
 
-class Escaner_Dialog(QtGui.QDialog):
+class Escaner_Dialog(QtWidgets.QDialog):
 
     def __init__(self):
-        super(Escaner_Dialog, self).__init__()
+        super().__init__()
 
         self.RADIANES_POR_CUENTA = math.radians(66) / (552.0 - 257.0)
 
@@ -62,9 +62,9 @@ class Escaner_Dialog(QtGui.QDialog):
         self.brazo2 = doc.Body003
 
         self.partes_rot1 = [self.acople, self.pote2, self.tuerca2, self.brazo1, self.pote3, self.tuerca3, self.brazo2]
-        self.orig = [parte.Placement for parte in self.partes_rot1]
 
-        self.partes_rot1_orig = zip(self.partes_rot1, self.orig)
+        self.orig = [parte.Placement.copy() for parte in self.partes_rot1]
+
         self.partes_rot2 = self.partes_rot1[3:]
         self.partes_rot3 = self.partes_rot2[3:]
 
@@ -76,14 +76,14 @@ class Escaner_Dialog(QtGui.QDialog):
         self.puntos = []
 
         # Reset del Arduino para una conexion limpia
-        self.arduino = serial.Serial("/dev/ttyUSB1")
+        self.arduino = serial.Serial("/dev/ttyUSB0")
         self.arduino.setDTR(False)
         time.sleep(1)
         self.arduino.flushInput()
         self.arduino.setDTR(True)
         self.arduino.close()
 
-        self.arduino = serial.Serial("/dev/ttyUSB1", 115200)
+        self.arduino = serial.Serial("/dev/ttyUSB0", 115200)
 
         self.arduino.read(1)  # espera que el arduino este listo
 
@@ -97,25 +97,25 @@ class Escaner_Dialog(QtGui.QDialog):
         self.setWindowTitle("Escaner 3D mecanico")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
-        self.label_autor = QtGui.QLabel("Hugo Arboleas <harboleas@citedef.gob.ar>" , self)
+        self.label_autor = QtWidgets.QLabel("Hugo Arboleas <harboleas@citedef.gob.ar>" , self)
         self.label_autor.move(20, 225)
 
 
-        self.label_potes = QtGui.QLabel("Cuentas potes : 0, 0, 0                   " , self)
+        self.label_potes = QtWidgets.QLabel("Cuentas potes : 0, 0, 0                   " , self)
         self.label_potes.move(20, 20)
 
-        self.label_punto = QtGui.QLabel("Coord punto : 0, 0, 0                                                      " , self)
+        self.label_punto = QtWidgets.QLabel("Coord punto : 0, 0, 0                                                      " , self)
         self.label_punto.move(20, 60)
 
-        self.okButton = QtGui.QPushButton("OK", self)
+        self.okButton = QtWidgets.QPushButton("OK", self)
         self.okButton.clicked.connect(self.onOk)
         self.okButton.move(260, 180)
 
-        self.tomar_coord_button = QtGui.QPushButton("Tomar punto", self)
+        self.tomar_coord_button = QtWidgets.QPushButton("Tomar punto", self)
         self.tomar_coord_button.clicked.connect(self.tomar_coord)
         self.tomar_coord_button.move(20, 180)
 
-        self.adquirir = QtGui.QCheckBox("Adquirir puntos", self)
+        self.adquirir = QtWidgets.QCheckBox("Adquirir puntos", self)
         self.adquirir.move(20, 100)
 
         self.punto = None
@@ -129,7 +129,7 @@ class Escaner_Dialog(QtGui.QDialog):
     def update_escaner(self):
         "Actualiza el modelo segun los datos leidos"
 
-        self.arduino.write("a") # pide los datos al arduino
+        self.arduino.write(b"a") # pide los datos al arduino
 
         K = self.RADIANES_POR_CUENTA
 
@@ -144,7 +144,7 @@ class Escaner_Dialog(QtGui.QDialog):
         offset1 = math.radians(0)
         offset2 = - math.radians(55)
         offset3 = - math.radians(50)
-        self.rotar(p1*K + offset1, p2*K + offset2, p3*K + offset3)
+        self.update_pos(p1*K + offset1, p2*K + offset2, p3*K + offset3)
 
         coord_punto = "Coord punto : %f, %f, %f" % (self.punto.x, self.punto.y, self.punto.z)
         self.label_punto.setText(coord_punto)
@@ -155,7 +155,7 @@ class Escaner_Dialog(QtGui.QDialog):
     def tomar_coord(self):
 
         Draft.makePoint(self.punto)
-        print self.punto
+        print(self.punto)
         self.puntos.append(self.punto)
 
     def onOk(self):
@@ -169,26 +169,25 @@ class Escaner_Dialog(QtGui.QDialog):
 #            for a,b in pares:
 #                Draft.makeLine(a, b)
 
-        a = open("puntos.xyz", "w")
+        a = open("/home/nan/puntos.xyz", "w")
 
         for p in self.puntos:
             a.write("%f %f %f\n" % (p.x, p.y, p.z))
 
         a.close()
 
-        # Reposicionar escaner al estado orig
-
-        for parte, orig in self.partes_rot1_orig:
+        # Restablece el modelo 3D a su posicion original
+        for parte, orig in zip(self.partes_rot1, self.orig):
             parte.Placement = orig
 
         self.close()
 
-    def rotar(self, ang1, ang2, ang3):
+    def update_pos(self, ang1, ang2, ang3):
 
         # Rotacion pote 1
         self.rot1.Rotation.Angle = ang1
 
-        for parte, orig in self.partes_rot1_orig:
+        for parte, orig in zip(self.partes_rot1, self.orig):
             parte.Placement = self.rot1.multiply(orig)
 
         punto = self.rot1.multVec(self.punto_orig)
